@@ -202,3 +202,57 @@ class ProBoundModel:
             raise Exception(f"{score_format} : undefined scoring format for bindingModeScores() method.")
 
         return result
+
+    def get_best_binding_windows(self, sequence, binding_mode=0, no_best=None, padding=None):
+        """
+        Returns a numpy array of the best binding window sequences with position and binding score.
+        :string sequence: sequence to probe
+        :param binding_mode: integer indentifier of a binding mode.
+                            Multiple binding modes are not supported.
+                            If your model has only a single binding mode
+                            or you have already picked a binding mode for the model, leave default value.
+        :param no_best: number of best examples to return with respect to padding calculation.
+                            If None, return all possible.
+        :param padding: minimal required padding between returned windows. Default: half of PSAM size.
+                    The following is iterated:
+                        the best window is identified, the too-close windows are removed.
+        """
+
+        vals = self.__score_binding_mode_scores_same_size([sequence],
+                                                          score_format="profile",
+                                                          profile_aggregate="max"
+                                                          )[0][binding_mode]
+        best = np.argsort(vals)
+        windowsize = len(sequence) - len(vals) + 1
+        result = []
+
+        if no_best is None:
+            no_best = len(vals)
+
+        if padding is None:
+            padding = windowsize // 2
+
+        start_pos = np.argsort(vals)[::-1]  # starting positions in descending order
+        affinities = vals[start_pos]
+        window_seqs = np.array([sequence[x:x + windowsize] for x in start_pos])
+
+        results = []
+        while len(results) < no_best:
+            current_startpos, current_affinity, currenct_window = start_pos[0], affinities[0], window_seqs[0]
+
+            results.append([current_startpos, current_affinity, currenct_window])
+
+            close_posi = np.arange(current_startpos - padding, current_startpos + padding + 1)
+            close_posi = close_posi[(close_posi >= 0) & (close_posi < len(vals))]
+
+            # at these positions there is a close one
+            close_indices = np.where(np.isin(start_pos, close_posi))[0]
+
+            mask = np.ones(start_pos.size, dtype=bool)
+            mask[close_indices] = False
+            start_pos, affinities, window_seqs = start_pos[mask], affinities[mask], window_seqs[mask]
+
+            if len(start_pos) == 0:
+                break
+
+        return np.array(result)

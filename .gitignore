@@ -1,6 +1,8 @@
 # compiled java program
 *.jar
 
+testscript.py
+
 .idea
 
 # Byte-compiled / optimized / DLL files
