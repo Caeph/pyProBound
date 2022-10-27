@@ -3,8 +3,11 @@ import jpype.imports
 import atexit
 import numpy as np
 import pandas as pd
+import os
 
-jardir = "/Users/kf/lausanne/pyProBound/pyProBound/jardir"
+current = os.path.split(os.path.realpath(__file__))[0]
+jardir = f"{current}/jardir"
+print(jardir)
 generalSchemaFile = f"{jardir}/schema.general.json"
 jpype.startJVM(classpath=[f'{jardir}/ProBound-jar-with-dependencies.jar'])
 
