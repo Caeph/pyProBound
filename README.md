@@ -9,4 +9,4 @@ This is only an interface. The functional part of the scoring is provided by a (
 Not done yet. Pip package planned.
 
 ## Usage
-Not done yet.
+See the jupyter notebooks in the test_input directory.
