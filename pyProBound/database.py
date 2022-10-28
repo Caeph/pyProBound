@@ -58,7 +58,7 @@ class MotifCentral:
         :param model_id: model ID
         :return:
         """
-        if model_id not in self.data["model_id"]:
+        if model_id not in self.data["model_id"].values:
             raise Exception(f"Model ID {model_id} is not in the database.")
         return self.data[self.data["model_id"] == model_id]
 
@@ -84,12 +84,15 @@ class MotifCentral:
             mask = taxamask & mask
 
         # multi value column
-        for col, query in zip(["publication", "gene_symbols"],
+        for col, query in zip(["publications", "gene_symbols"],
                               [publications, gene_symbols]):
+            if query is None:
+                continue
             colmask = np.zeros(len(self.data), dtype=bool)
             for q in query:
                 qmask = self.data[col].map({q}.issubset)
                 colmask = colmask | qmask
             mask = colmask & mask
 
-        return self.data[mask]
+        view = self.data[mask].copy()
+        return view
