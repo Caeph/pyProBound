@@ -6,7 +6,8 @@ import pandas as pd
 import os
 
 current = os.path.split(os.path.realpath(__file__))[0]
-jardir = f"{current}/jardir"
+jardir = f"{current}"
+print(jardir)
 generalSchemaFile = f"{jardir}/schema.general.json"
 jpype.startJVM(classpath=[f'{jardir}/ProBound-jar-with-dependencies.jar'])
 

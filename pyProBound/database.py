@@ -4,7 +4,7 @@ import os
 import numpy as np
 
 current = os.path.split(os.path.realpath(__file__))[0]
-jardir = f"{current}/jardir"
+jardir = f"{current}"
 motifcentral_json = f"{jardir}/MotifCentral.v1.0.0.json"
 
 tax_id_map = {
