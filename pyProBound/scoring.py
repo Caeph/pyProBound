@@ -176,6 +176,7 @@ class ProBoundModel:
         #                   -- len(sequences) X model_binding_modes X slides X 2 (forward, reverse)
         # if score format is profile and profile_aggregate is sum/max/mean --
         #                   -- len(sequences) X model_binding_modes X slides
+        # todo speedup
         sequences_java = self.__create_java_arraylist(sequences)
         modifications_java = self.__create_java_arraylist(modifications,
                                                           throw_for_none=False)
@@ -208,13 +209,14 @@ class ProBoundModel:
         Returns a numpy array of the best binding window sequences with position and binding score.
         :string sequence: sequence to probe
         :param binding_mode: integer indentifier of a binding mode.
-                            Multiple binding modes are not supported.
-                            If your model has only a single binding mode
-                            or you have already picked a binding mode for the model, leave default value.
+                        Multiple binding modes are not supported.
+                        If your model has only a single binding mode
+                        or you have already picked a binding mode for the model, leave default value.
         :param no_best: number of best examples to return with respect to padding calculation.
-                            If None, return all possible.
+                        If None, return all possible.
         :param padding: minimal required padding between returned windows. Default: half of PSAM size.
-                    The following is iterated:
+                        Set 0 to ignore padding.
+                        The following is iterated:
                         the best window is identified, the too-close windows are removed.
         """
 
