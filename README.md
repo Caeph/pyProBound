@@ -8,5 +8,14 @@ This is only an interface. The functional part of the scoring is provided by a (
 ## Instalation
 Not done yet. Pip package planned.
 
+### Requirements
+Numpy, jpype, pandas.
+
+### Pip installation
+Will be done.
+
+### From source
+Clone https://github.com/Caeph/ProBoundTools.git and compile it using Maven (details here: https://github.com/BussemakerLab/ProBoundTools). Move the compiled jar with dependencies to the pyProBound directory (next to the Python scripts and json files.)
+
 ## Usage
 See the jupyter notebooks in the test_input directory.
