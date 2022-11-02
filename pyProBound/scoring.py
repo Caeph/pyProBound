@@ -79,12 +79,36 @@ class ProBoundModel:
 
         self.current_sequences = None
 
-    def select_binding_mode(self, bindingMode):
+    def select_binding_mode(self, bindingMode, clean=False):
         """
         Selects binding mode to use in model. By default, all are used.
         :param bindingMode: integer identifier for the binding mode
+        :param clean: removes all other binding modes, interactions, enrichment models
         """
-        self.t.selectBindingMode(bindingMode)
+        if clean:
+            self.t.selectAndCleanBindingMode(bindingMode)
+        else:
+            self.t.selectBindingMode(bindingMode)
+
+    def remove_binding_mode(self, bindingMode):
+        """
+        Removes a binding mode from the model.
+        :param bindingMode: integer identifier for the binding mode
+        """
+        self.t.removeBindingMode(bindingMode)
+
+    def set_mismatch_gauge(self):
+        """
+        Imposes the mismatch gauge on the binding modes, meaning the top sequence has score zero.
+        """
+        self.t.setMismatchGauge()
+
+    def write_model(self, filename):
+        """
+        Write model to a filename
+        :param filename: path to the file 
+        """
+        self.t.writeModel(filename)
 
     def __group_sequences(self, sequences):
         # group sequences by size, yield groups
@@ -199,6 +223,7 @@ class ProBoundModel:
             ))
 
             for col in bm_profile_storages.columns:
+                # this part takes a lot of time -- jpype...
                 firsts = bm_profile_storages[col].apply(lambda stor: stor.getFirst()) # sequences X slides
                 seconds = bm_profile_storages[col].apply(lambda stor: stor.getSecond()) # sequences X slides
 
