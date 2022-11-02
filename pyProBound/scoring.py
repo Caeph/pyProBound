@@ -17,7 +17,6 @@ def __closeJVM():
 
 atexit.register(__closeJVM)
 
-
 from proBoundTools import Toolbox
 
 
@@ -43,10 +42,10 @@ class ProBoundModel:
         return np.vstack([np.array(x) for x in javaarray])
 
     __profile_aggr = {
-        "sum": lambda desc: np.sum(desc, axis=1),
-        "mean": lambda desc: np.mean(desc, axis=1),
-        "max": lambda desc: np.max(desc, axis=1),
-        "forward": lambda desc: desc[:, 0],
+        "sum": lambda desc: np.sum(desc, axis=-1),
+        "mean": lambda desc: np.mean(desc, axis=-1),
+        "max": lambda desc: np.max(desc, axis=-1),
+        "forward": lambda desc: desc[:, :, :, 0],
     }
 
     # backend -- toolbox object
@@ -134,11 +133,11 @@ class ProBoundModel:
         """
         # returns a numpy array with results
         # if score format is an aggregate function (sum/mean/max) -- len(sequences) X model_binding_modes
-        # if score format is profile --  list of items for each sequence:  model_binding_modes X slides X 2(forward, reverse)
-
+        # if score format is profile --  list of items for each sequence:
+        #       model_binding_modes X slides X 2(forward, reverse)
         indexes, results = [], []
         for len_value, seq_size_group in self.__group_sequences(sequences):
-            r = self.__score_binding_mode_scores_same_size(seq_size_group,
+            r = self.__score_binding_mode_scores_same_size(seq_size_group.values,
                                                            modifications=modifications,
                                                            score_format=score_format,
                                                            profile_aggregate=profile_aggregate
@@ -168,6 +167,7 @@ class ProBoundModel:
                                               modifications=None,
                                               score_format="sum",
                                               profile_aggregate=None,
+                                              uselist=False,
                                               ):
         # sequences -- iterable of strings, must be same size
         # returns a numpy array with results
@@ -176,7 +176,6 @@ class ProBoundModel:
         #                   -- len(sequences) X model_binding_modes X slides X 2 (forward, reverse)
         # if score format is profile and profile_aggregate is sum/max/mean --
         #                   -- len(sequences) X model_binding_modes X slides
-        # todo speedup
         sequences_java = self.__create_java_arraylist(sequences)
         modifications_java = self.__create_java_arraylist(modifications,
                                                           throw_for_none=False)
@@ -185,20 +184,34 @@ class ProBoundModel:
         if score_format in ["sum", "mean", "max"]:
             # get array of values for all binding modes in the model
             bm_results = count_table.calculateAggregateBindingModeAlphas(score_format)
+
+            # todo speedup in create numpy
             result = np.hstack([self.__create_numpy(bm_array) for bm_array in bm_results]).T
         elif score_format == "profile":
-            bm_profile_storages = np.array(count_table.calculateProfileBindingModeAlphas())
-            input_desc = []
-            for bm_storage_arr in bm_profile_storages:
-                bm_desc = []
-                for item in bm_storage_arr:
-                    bm_seq_desc = np.hstack([self.__create_numpy(item.getFirst()),
-                                             self.__create_numpy(item.getSecond())])
-                    if profile_aggregate is not None:
-                        bm_seq_desc = self.__profile_aggr[profile_aggregate](bm_seq_desc)
-                    bm_desc.append(bm_seq_desc)
-                input_desc.append(bm_desc)
-            result = np.array(input_desc)
+            bm_profile_storages = count_table.calculateProfileBindingModeAlphas()
+            bm_profile_storages = pd.DataFrame(bm_profile_storages)
+
+            init = np.zeros((
+                len(sequences), 
+                len(bm_profile_storages.columns),
+                len(sequences[0]),
+                2
+            ))
+
+            for col in bm_profile_storages.columns:
+                firsts = bm_profile_storages[col].apply(lambda stor: stor.getFirst()) # sequences X slides
+                seconds = bm_profile_storages[col].apply(lambda stor: stor.getSecond()) # sequences X slides
+
+                slides = len(firsts[0])
+                for i in range(len(sequences)):
+                    init[i, col, :slides, 0] = firsts[i]
+                    init[i, col, :slides, 1] = seconds[i]
+
+            result = init[:, :, :slides, :]
+
+            if profile_aggregate is not None:
+                result = self.__profile_aggr[profile_aggregate](result)
+                # todo clip excess at the end -- sequence size >= no_slides
         else:
             raise Exception(f"{score_format} : undefined scoring format for bindingModeScores() method.")
 
