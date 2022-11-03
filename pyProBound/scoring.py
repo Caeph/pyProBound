@@ -59,6 +59,7 @@ class ProBoundModel:
         :param source: path to a json file (fitjson=True) or model number in MotifCentral (motifcentral=True)
         :boolean motifcentral: bool, load source from motifcentral
         :boolean fitjson: bool, load source from local fit json model
+                if neither motifcentral nor fitjson are set, a valid model json is expected.
         :int iLine: for fitjson -- use the model on iLine. Default: -1 (line with the smallest -log(likelihood))
         :boolean withN: add N to scoring alphabet
         :int bindingMode: select binding mode. Default: use all binding modes
@@ -209,7 +210,6 @@ class ProBoundModel:
             # get array of values for all binding modes in the model
             bm_results = count_table.calculateAggregateBindingModeAlphas(score_format)
 
-            # todo speedup in create numpy
             result = np.hstack([self.__create_numpy(bm_array) for bm_array in bm_results]).T
         elif score_format == "profile":
             bm_profile_storages = count_table.calculateProfileBindingModeAlphas()
