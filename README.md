@@ -33,7 +33,7 @@ from pyProBound import ProBoundModel
 model = ProBoundModel(1000, motifcentral=True) 
 ```
 
-You can use the ProBound webserver and fit your own model. 
+You can use the ProBound webserver (http://pbdemo.x3dna.org) and fit your own model. 
 You can then load it from the model json.
 ```
 model = ProBoundModel("fit.sox2.json", fitjson=True)
