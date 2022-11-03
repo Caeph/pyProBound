@@ -5,17 +5,52 @@ This is an interface package to score sequences by models of transcription facto
 
 This is only an interface. The functional part of the scoring is provided by a (sligthly modified) ProBoundTools Java program available from https://github.com/Caeph/ProBoundTools.git. The original program can be found at https://github.com/BussemakerLab/ProBoundTools. 
 
-## Instalation
-Not done yet. Pip package planned.
-
-### Requirements
+## Requirements
 Python>=3.9 with numpy, jpype 1.4.0 and pandas. Installed Java in your path.
 
-### Pip installation
-Will be done.
-
-### From source
-Clone https://github.com/Caeph/ProBoundTools.git and compile it using Maven (details here: https://github.com/BussemakerLab/ProBoundTools). Move the compiled jar with dependencies to the pyProBound directory (next to the Python scripts and json files.)
-
 ## Usage
-See the jupyter notebooks in the test_input directory.
+Package contains two classes:
+**MotifCentral**: a class representing already available models from https://motifcentral.org/.
+You can get the *fit_id* of a model you need, using filters as a taxon, source study or a transcription molecule.
+
+It is currently based on v1.0.0 of the database.
+
+The command
+```
+from pyProBound import MotifCentral
+
+database = MotifCentral()
+database.filter(taxa=["Drosophila melanogaster"], 
+                publications=["Isakova2017", "Jolma2013"])
+```
+returns a Pandas DataFrame containing rows that comply with filters.
+
+**ProBoundModel**: a class representing a binding model.
+
+You can get a model from the MotifCentral database, if you know its fit ID.
+```
+from pyProBound import ProBoundModel
+model = ProBoundModel(1000, motifcentral=True) 
+```
+
+You can use the ProBound webserver and fit your own model. 
+You can then load it from the model json.
+```
+model = ProBoundModel("fit.sox2.json", fitjson=True)
+```
+where ```"fit.sox2.json"``` is a path to the file. 
+
+Finally, you can load a prepared model from json.
+```
+model = ProBoundModel("model.json")
+```
+where ```"model.json"``` is a path to the file.
+
+Using the loaded model, you can manipulate it (selecting and removing binding modes, ...). 
+You can also score sequences by the following methods:
+
+```
+model.score_affinity_sum(sequences)
+model.score_binding_mode_scores(seqs, score_format="sum")
+```
+See the example jupyter notebooks in the github repository for more details.

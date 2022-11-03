@@ -1,7 +1,7 @@
 [project]
 name = "pyprobound"
 description = "ProBound model manipulation and scoring interface"
-version = "0.0.3"
+version = "0.0.8"
 authors = [
     { name = "Kateřina Faltejsková", email = "katerina.faltejskova@uochb.cas.cz" }
 ]
@@ -10,7 +10,7 @@ dependencies = [
     "numpy",
     "pandas"
 ]
-readme="README.md"
+readme = "readme.md"
 
 [tool.setuptools]
 packages = ["pyProBound"]
