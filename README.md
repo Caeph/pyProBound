@@ -51,6 +51,6 @@ You can also score sequences by the following methods:
 
 ```
 model.score_affinity_sum(sequences)
-model.score_binding_mode_scores(seqs, score_format="sum")
+model.score_binding_mode_scores(seqs, score_format=...)
 ```
 See the example jupyter notebooks in the github repository for more details.
