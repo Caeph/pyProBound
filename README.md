@@ -9,7 +9,7 @@ This is only an interface. The functional part of the scoring is provided by a (
 Not done yet. Pip package planned.
 
 ### Requirements
-Numpy, jpype, pandas.
+Python>=3.9 with numpy, jpype 1.4.0 and pandas. Installed Java in your path.
 
 ### Pip installation
 Will be done.
