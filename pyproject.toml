@@ -1,9 +1,9 @@
 [project]
 name = "pyprobound"
 description = "ProBound model manipulation and scoring interface"
-version = "0.0.8"
+version = "0.0.10"
 authors = [
-    { name = "Kateřina Faltejsková", email = "katerina.faltejskova@uochb.cas.cz" }
+    { name = "Katerina Faltejskova", email = "katerina.faltejskova@uochb.cas.cz" }
 ]
 dependencies = [
     "jpype1==1.4.0",
@@ -14,6 +14,9 @@ readme = "readme.md"
 
 [tool.setuptools]
 packages = ["pyProBound"]
+
+[project.urls]
+repository = "https://github.com/Caeph/pyProBound"
 
 [tool.setuptools.package-data]
 pyProBound = ["*.json", "*.jar"]

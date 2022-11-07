@@ -262,7 +262,7 @@ class ProBoundModel:
                                                           score_format="profile",
                                                           profile_aggregate="max"
                                                           )[0][binding_mode]
-        best = np.argsort(vals)
+        # best = np.argsort(vals)
         windowsize = len(sequence) - len(vals) + 1
         result = []
 
@@ -295,4 +295,4 @@ class ProBoundModel:
             if len(start_pos) == 0:
                 break
 
-        return np.array(result)
+        return np.array(results)
