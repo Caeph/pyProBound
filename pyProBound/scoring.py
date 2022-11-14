@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import os
 
-jardir = os.path.split(os.path.realpath(__file__))[0]+"/pyProBound"
+jardir = os.path.split(os.path.realpath(__file__))[0]
 
 jnius_config.add_classpath(f"{jardir}/ProBound-jar-with-dependencies.jar")
 from jnius import autoclass

@@ -5,7 +5,6 @@ testscript.py
 scores.tmp
 scoring_withfile.py
 testscript_jnius.py
-testscript.py
 jnius_venv
 
 .idea
