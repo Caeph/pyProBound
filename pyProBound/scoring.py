@@ -1,54 +1,32 @@
-import jpype
-import jpype.imports
-import atexit
+import jnius_config
 import numpy as np
 import pandas as pd
 import os
 
-current = os.path.split(os.path.realpath(__file__))[0]
-jardir = f"{current}"
+jardir = os.path.split(os.path.realpath(__file__))[0]+"/pyProBound"
+
+jnius_config.add_classpath(f"{jardir}/ProBound-jar-with-dependencies.jar")
+from jnius import autoclass
+
 generalSchemaFile = f"{jardir}/schema.general.json"
-jpype.startJVM(classpath=[f'{jardir}/ProBound-jar-with-dependencies.jar'])
+Toolbox = autoclass("proBoundTools.Toolbox")
+Javalist = autoclass("java.util.ArrayList")
+
+# processes = 4
 
 
-def __closeJVM():
-    jpype.shutdownJVM()
+def get_first(stor):
+    return np.array(stor.getFirst())
 
 
-atexit.register(__closeJVM)
+def get_second(stor):
+    return np.array(stor.getSecond())
 
-from proBoundTools import Toolbox
 
+#def set_processes(new_pocesses):
+#    processes = new_pocesses
 
 class ProBoundModel:
-    """
-    Class representing a ProBound model.
-    """
-
-    def __create_java_arraylist(self, iterable, throw_for_none=True):
-        javalist = jpype.java.util.ArrayList()
-        if (iterable is None) and throw_for_none:
-            raise Exception("Trying to iterate over None.")
-        elif (iterable is None):
-            # create empty ArrayList
-            return javalist
-        for item in iterable:
-            javalist.add(item)
-
-        return javalist
-
-    def __create_numpy(self, javaarray):
-        # javaarray -- possibly array of arrays
-        return np.vstack([np.array(x) for x in javaarray])
-
-    __profile_aggr = {
-        "sum": lambda desc: np.sum(desc, axis=-1),
-        "mean": lambda desc: np.mean(desc, axis=-1),
-        "max": lambda desc: np.max(desc, axis=-1),
-        "forward": lambda desc: desc[:, :, :, 0],
-    }
-
-    # backend -- toolbox object
     def __init__(self, source,
                  motifcentral=False,
                  fitjson=False,
@@ -80,6 +58,24 @@ class ProBoundModel:
 
         self.current_sequences = None
 
+    __profile_aggr = {
+        "sum": lambda desc: np.sum(desc, axis=-1),
+        "mean": lambda desc: np.mean(desc, axis=-1),
+        "max": lambda desc: np.max(desc, axis=-1),
+        "forward": lambda desc: desc[:, :, :, 0],
+    }
+
+    def __create_java_arraylist(self, iterable, throw_for_none=True):
+        javalist = Javalist()
+        if (iterable is None) and throw_for_none:
+            raise Exception("Trying to iterate over None.")
+        elif iterable is None:
+            return javalist
+        for item in iterable:
+            javalist.add(item)
+
+        return javalist
+
     def select_binding_mode(self, bindingMode, clean=False):
         """
         Selects binding mode to use in model. By default, all are used.
@@ -107,7 +103,7 @@ class ProBoundModel:
     def write_model(self, filename):
         """
         Write model to a filename
-        :param filename: path to the file 
+        :param filename: path to the file
         """
         self.t.writeModel(filename)
 
@@ -146,7 +142,7 @@ class ProBoundModel:
 
     def score_binding_mode_scores(self, sequences,
                                   modifications=None,
-                                  score_format="sum", profile_aggregate=None, ):
+                                  score_format="sum", profile_aggregate=None ):
         """
         Calculate scores for selected binding mode.
         :param sequences: iterable of sequences (list, numpy array). Must be uppercase.
@@ -173,6 +169,11 @@ class ProBoundModel:
         if score_format != "profile":  # unsupported are already taken care of
             return np.array(output)
         return output  # profile -- returns list, can be ragged
+
+    def __create_numpy(self, javaarray):
+        # javaarray -- possibly array of arrays
+        res = np.vstack([np.array(x) for x in javaarray])
+        return res
 
     def __score_affinity_sum_same_size(self, sequences, modifications=None):
         # sequences -- iterable of strings, must be same size
@@ -209,34 +210,25 @@ class ProBoundModel:
         if score_format in ["sum", "mean", "max"]:
             # get array of values for all binding modes in the model
             bm_results = count_table.calculateAggregateBindingModeAlphas(score_format)
-
             result = np.hstack([self.__create_numpy(bm_array) for bm_array in bm_results]).T
         elif score_format == "profile":
             bm_profile_storages = count_table.calculateProfileBindingModeAlphas()
             bm_profile_storages = pd.DataFrame(bm_profile_storages)
 
-            init = np.zeros((
-                len(sequences), 
-                len(bm_profile_storages.columns),
-                len(sequences[0]),
-                2
-            ))
+            forw, rev = [], []
 
             for col in bm_profile_storages.columns:
-                # this part takes a lot of time -- jpype...
-                firsts = bm_profile_storages[col].apply(lambda stor: stor.getFirst()) # sequences X slides
-                seconds = bm_profile_storages[col].apply(lambda stor: stor.getSecond()) # sequences X slides
+                firsts = np.vstack(bm_profile_storages[col].apply(get_first))
+                seconds = np.vstack(bm_profile_storages[col].apply(get_second))
 
-                slides = len(firsts[0])
-                for i in range(len(sequences)):
-                    init[i, col, :slides, 0] = firsts[i]
-                    init[i, col, :slides, 1] = seconds[i]
+                forw.append(firsts)
+                rev.append(seconds)
 
-            result = init[:, :, :slides, :]
+            result = np.stack([forw, rev])
+            result = np.transpose(result, axes=[2, 1, 3, 0])
 
             if profile_aggregate is not None:
                 result = self.__profile_aggr[profile_aggregate](result)
-                # todo clip excess at the end -- sequence size >= no_slides
         else:
             raise Exception(f"{score_format} : undefined scoring format for bindingModeScores() method.")
 
