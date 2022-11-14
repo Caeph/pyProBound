@@ -2,6 +2,7 @@ import jnius_config
 import numpy as np
 import pandas as pd
 import os
+import swifter
 
 jardir = os.path.split(os.path.realpath(__file__))[0]
 # print(jardir)
@@ -219,8 +220,8 @@ class ProBoundModel:
             forw, rev = [], []
 
             for col in bm_profile_storages.columns:
-                firsts = np.vstack(bm_profile_storages[col].apply(get_first))
-                seconds = np.vstack(bm_profile_storages[col].apply(get_second))
+                firsts = np.vstack(bm_profile_storages[col].swifter.apply(get_first))
+                seconds = np.vstack(bm_profile_storages[col].swifter.apply(get_second))
 
                 forw.append(firsts)
                 rev.append(seconds)
