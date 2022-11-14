@@ -6,7 +6,7 @@ This is an interface package to score sequences by models of transcription facto
 This is only an interface. The functional part of the scoring is provided by a (sligthly modified) ProBoundTools Java program available from https://github.com/Caeph/ProBoundTools.git. The original program can be found at https://github.com/BussemakerLab/ProBoundTools. 
 
 ## Requirements
-Python>=3.9 with numpy, jpype 1.4.0 and pandas. Installed Java in your path.
+Python>=3.9 with numpy, pyjnius and pandas. Installed Java in your path.
 
 ## Usage
 Package contains two classes:
