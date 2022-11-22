@@ -220,8 +220,8 @@ class ProBoundModel:
             forw, rev = [], []
 
             for col in bm_profile_storages.columns:
-                firsts = np.vstack(bm_profile_storages[col].swifter.apply(get_first))
-                seconds = np.vstack(bm_profile_storages[col].swifter.apply(get_second))
+                firsts = np.vstack(bm_profile_storages[col].swifter.progress_bar(False).apply(get_first))
+                seconds = np.vstack(bm_profile_storages[col].swifter.progress_bar(False).apply(get_second))
 
                 forw.append(firsts)
                 rev.append(seconds)

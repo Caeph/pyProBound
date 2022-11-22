@@ -1,12 +1,13 @@
 [project]
 name = "pyprobound"
 description = "ProBound model manipulation and scoring interface"
-version = "0.0.12"
+version = "0.0.13"
 authors = [
     { name = "Katerina Faltejskova", email = "katerina.faltejskova@uochb.cas.cz" }
 ]
 dependencies = [
     "pyjnius",
+    "swifter",
     "numpy",
     "pandas"
 ]
